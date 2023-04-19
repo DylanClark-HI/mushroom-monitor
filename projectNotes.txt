@@ -1,0 +1,137 @@
+#include <SPI.h>
+#include <Wire.h>
+#include <RTClib.h>
+#include "refresh_sensor_readings.h"
+
+// Defining Shift Register settings
+const int LATCH_PIN = 4;    // Latch pin of 74HC595 is connected to Digital pin 4
+const int CLOCK_PIN = 5;    // Clock pin of 74HC595 is connected to Digital pin 5
+const int DATA_OUT_PIN = 0; // Data Out pin of 74HC595 is connected to Digital pin 0
+
+// We wont have > 1 sensor active at any given point, but we may have 1 sensor and multiple relays energised
+byte OUTPUTS = 0; // A variable to store the sequence of what outputs we want active on the shift registers
+
+
+RTC_DS1307 rtc;
+
+class LogData
+{
+public:
+  float temperatureCelsius;
+  float humidity;
+  // String timeStamp;
+
+  LogData(float h, float tC)
+  {
+    temperatureCelsius = tC;
+    humidity = h;
+    // timeStamp = ts;
+  }
+
+  void print()
+  {
+    Serial.println("Large Tent:    ");
+
+    Serial.print("- Temperature: ");
+    Serial.print(temperatureCelsius);
+    Serial.println("*C ");
+
+    Serial.print("- Humidity: ");
+    Serial.print(humidity);
+    Serial.println("%\t");
+
+    Serial.println("------------------------");
+  }
+};
+
+void setup()
+{
+  Serial.begin(9600);
+
+  dht.begin();
+
+  // Set all the pins of 74HC595 as OUTPUT
+  pinMode(LATCH_PIN, OUTPUT);
+  pinMode(DATA_OUT_PIN, OUTPUT);
+  pinMode(CLOCK_PIN, OUTPUT);
+
+  Wire.begin(D2, D1); // SDA: D2, SCL: D1 for D1 Mini Board
+
+  if (!rtc.begin())
+  {
+    Serial.println("Couldn't find RTC");
+    while (1)
+      ;
+  }
+
+  if (!rtc.isrunning())
+  {
+    Serial.println("RTC is NOT running!");
+    // Set the RTC to the current date and time (change these values to the current date and time)
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  }
+}
+
+LogData getData()
+{
+  // Wait a few seconds between measurements.
+  delay(8000);
+
+  // Reading temperature or humidity takes about 250 milliseconds!
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  float h = dht.readHumidity();
+  // Read temperature as Celsius
+  float t = dht.readTemperature();
+  // Read RTC
+  // DateTime now = rtc.now();
+  // delay(1000);
+  
+  // // Format the timestamp
+  // char format[] = "DD-MM-YYYY hh:mm:ss";
+  // String ts = now.toString(format);
+  // Serial.println(ts);
+  // Serial.println(now.toString(format));
+  // String ts = now.day() + "-" + String(now.month()) + "-" + String(now.year()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
+
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(h) || isnan(t))
+  {
+    Serial.println("Failed to read from DHT sensor!");
+    return LogData{0, 0};
+  }
+
+  // Store the data values in a struct and return it
+  LogData data = {h, t};
+  return data;
+}
+
+// void storeDataValues(float humidity, float temperature, String timeStamp)
+// {
+//   Serial.println("Storing values...");
+//   Serial.print(humidity);
+//   Serial.print(", ");
+// }
+
+void updateShiftRegister()
+{
+  digitalWrite(LATCH_PIN, LOW);
+  shiftOut(DATA_OUT_PIN, CLOCK_PIN, MSBFIRST, OUTPUTS);
+  digitalWrite(LATCH_PIN, HIGH);
+}
+
+void loop()
+{
+  OUTPUTS = 0; // Initially turns all the outputs off
+  updateShiftRegister();
+  delay(500);
+  for (int i = 1; i <= 2; i++) // Begin iterating through the outputs
+  {
+    OUTPUTS = 1 << i; // Set the bit that controls that output in the variable 'OUTPUTS'
+    updateShiftRegister();
+    delay(1000);
+    LogData data = getData();
+    data.print();
+    delay(300);
+  }
+}
+
