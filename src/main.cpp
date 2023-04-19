@@ -18,7 +18,7 @@ void setup()
   pinMode(DATA_OUT_PIN, OUTPUT);
   pinMode(CLOCK_PIN, OUTPUT);
 
-  Wire.begin(SDA, SCL); 
+  Wire.begin(D2, D1);
 
   if (!rtc.begin())
   {

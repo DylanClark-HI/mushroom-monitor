@@ -11,9 +11,4 @@
     #define LDR_PIN A0;            // LDR sensor is connected to Analog pin A0
     #define DHTTYPE DHT11          // Using a DHT11 sensor
 
-    // Define RTC settings
-    // These are the connections on the RTC board
-    #define SDA_PIN D2 // SDA: D2,
-    #define SCL_PIN D1 // SCL: D1
-
 #endif

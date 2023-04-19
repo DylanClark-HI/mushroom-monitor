@@ -1,6 +1,6 @@
 #include <SD.h>
 
-const int CS_PIN = D8; // Chip Select pin for the Micro SD card reader
+const int CS_PIN = 0; // Chip Select pin for the Micro SD card reader
 
 // void storeDataValues(float humidity, float temperature, String timeStamp)
 // {
