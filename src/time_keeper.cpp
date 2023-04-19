@@ -1,6 +1,6 @@
 #include <time_keeper.h>
 
-void refreshTime(RTC_DS1307 rtc)
+void refreshTime()
 {
     DateTime now = rtc.now();
     Serial.print(now.year(), DEC);

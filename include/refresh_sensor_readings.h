@@ -1,11 +1,15 @@
 #ifndef SENSOR_READINGS_H
     #define SENSOR_READINGS_H
 
-#include <settings.h>
 #include <DHT.h>
 
-DHT dht(DATA_INPUT_PIN, DHTTYPE);
+// Defining sensor settings
+const int DATA_INPUT_PIN = 13; // Data returned from the digital sensors will be read with pin 13
+const int LDR_PIN = A0;            // LDR sensor is connected to Analog pin A0
+#define DHTTYPE DHT11          // Using a DHT11 sensor
 
-void refreshReadings(DHT dht);
+extern DHT dht;
+
+void refreshReadings();
 
 #endif

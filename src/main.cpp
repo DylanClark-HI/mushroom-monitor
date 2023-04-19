@@ -1,10 +1,11 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <set_register.h>
 #include <refresh_sensor_readings.h>
 #include <time_keeper.h>
 #include <data_logger.h>
-#include <set_register_output.h>
+
 
 
 void setup()
@@ -38,7 +39,7 @@ void setup()
 
 void loop()
 {
-  OUTPUTS = 0; // Initially turns all the outputs off
+  byte OUTPUTS = 0; // Initially turns all the outputs off
   setShiftRegister(OUTPUTS);
   delay(500);
   for (int i = 1; i <= 2; i++) // Begin iterating through the outputs
@@ -46,7 +47,7 @@ void loop()
     OUTPUTS = 1 << i; // Set the bit that controls that output in the variable 'OUTPUTS'
     setShiftRegister(OUTPUTS);
     delay(1000);
-    refreshReadings(dht);
+    refreshReadings();
     delay(300);
   }
 }
